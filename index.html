@@ -212,32 +212,55 @@
           <div class="flex items-center justify-between border-b border-slate-700/60 pb-3">
             <div>
               <h2 class="text-sm font-bold uppercase tracking-wider text-sky-400">Global Route Map & Flight Arcs</h2>
-              <p class="text-xs text-slate-400">Visual representation of all departure and arrival vectors.</p>
+              <p class="text-xs text-slate-400">Vibrant aeronautical map projection with active flight vectors.</p>
             </div>
             <span id="map-total-routes" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/30">0 Routes Active</span>
           </div>
 
-          <!-- SVG World Map Container -->
-          <div class="relative w-full bg-cockpit-900 rounded-xl border border-slate-800 overflow-hidden aspect-[16/9] flex items-center justify-center">
-            <svg id="world-map-svg" viewBox="0 0 1000 500" class="w-full h-full text-slate-800">
-              <!-- Stylized World Map Grid and Continents -->
-              <rect width="1000" height="500" fill="#070A0F" />
-              <!-- Lat/Long Grid Lines -->
-              <g class="stroke-slate-800/80 stroke-[0.5]" stroke-dasharray="4 4">
-                <line x1="0" y1="125" x2="1000" y2="125" />
-                <line x1="0" y1="250" x2="1000" y2="250" />
-                <line x1="0" y1="375" x2="1000" y2="375" />
-                <line x1="250" y1="0" x2="250" y2="500" />
-                <line x1="500" y1="0" x2="500" y2="500" />
-                <line x1="750" y1="0" x2="750" y2="500" />
+          <!-- Stunning Colorful Dark-Mode Aeronautical Map -->
+          <div class="relative w-full bg-[#0a1120] rounded-2xl border border-slate-700 overflow-hidden aspect-[16/9] shadow-inner flex items-center justify-center">
+            <svg id="world-map-svg" viewBox="0 0 1000 500" class="w-full h-full">
+              <!-- Ocean Background Gradient -->
+              <defs>
+                <linearGradient id="oceanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#060e1d" />
+                  <stop offset="50%" stop-color="#0b172c" />
+                  <stop offset="100%" stop-color="#040914" />
+                </linearGradient>
+                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
+              <rect width="1000" height="500" fill="url(#oceanGrad)" />
+
+              <!-- Aeronautical Lat/Long Grid -->
+              <g class="stroke-sky-900/40 stroke-[0.5]" stroke-dasharray="6 6">
+                <line x1="0" y1="100" x2="1000" y2="100" />
+                <line x1="0" y1="200" x2="1000" y2="200" />
+                <line x1="0" y1="300" x2="1000" y2="300" />
+                <line x1="0" y1="400" x2="1000" y2="400" />
+                <line x1="200" y1="0" x2="200" y2="500" />
+                <line x1="400" y1="0" x2="400" y2="500" />
+                <line x1="600" y1="0" x2="600" y2="500" />
+                <line x1="800" y1="0" x2="800" y2="500" />
               </g>
-              <!-- Continents simplified silhouette paths -->
-              <path d="M150,80 Q200,60 250,90 T300,150 T220,200 T160,150 Z" fill="#131A26" opacity="0.6"/> <!-- North America -->
-              <path d="M220,230 Q280,240 270,350 T200,420 T170,300 Z" fill="#131A26" opacity="0.6"/> <!-- South America -->
-              <path d="M480,90 Q560,70 600,120 T580,200 T480,180 Z" fill="#131A26" opacity="0.6"/> <!-- Europe -->
-              <path d="M470,220 Q560,200 580,320 T490,400 T450,280 Z" fill="#131A26" opacity="0.6"/> <!-- Africa -->
-              <path d="M620,80 Q780,60 850,150 T800,300 T620,250 Z" fill="#131A26" opacity="0.6"/> <!-- Asia -->
-              <path d="M780,330 Q850,320 860,400 T780,420 Z" fill="#131A26" opacity="0.6"/> <!-- Australia -->
+
+              <!-- Stylized Continents with Rich Aeronautical Dark Terrain Fill -->
+              <g fill="#14243e" stroke="#1e3a60" stroke-width="1.2">
+                <!-- North America -->
+                <path d="M120,70 Q210,50 270,80 T310,160 T230,220 T150,160 Z" />
+                <!-- South America -->
+                <path d="M220,240 Q290,250 280,360 T210,440 T170,310 Z" />
+                <!-- Europe & Western Asia -->
+                <path d="M470,80 Q570,60 620,110 T600,210 T480,190 Z" />
+                <!-- Africa -->
+                <path d="M470,220 Q570,200 590,330 T480,420 T440,290 Z" />
+                <!-- Asia & Russia -->
+                <path d="M620,70 Q820,50 900,140 T820,310 T620,260 Z" />
+                <!-- Australia -->
+                <path d="M780,330 Q870,320 880,410 T770,430 Z" />
+              </g>
 
               <!-- Route Arcs & Pins Layer -->
               <g id="map-routes-layer"></g>
@@ -267,62 +290,16 @@
     </section>
 
     <!-- ================================================================= -->
-    <!-- VIEW 3: ADVANCED COCKPIT TOOLS (FUEL, FTL, AIRPORTS)             -->
+    <!-- VIEW 3: ADVANCED COCKPIT TOOLS (FTL & AIRPORTS)                  -->
     <!-- ================================================================= -->
     <section id="view-tools" class="space-y-6 hidden">
-      <!-- 4 Points Tools Grid -->
+      <!-- 3 Points Tools Grid (Fuel & Weight Removed) -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <!-- TOOL 1: Fuel & Weight Quick Check -->
+        <!-- TOOL 1: FTL & Rest Time Monitor -->
         <div class="bg-cockpit-800 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
           <div class="border-b border-slate-700/60 pb-3">
-            <h3 class="text-sm font-bold uppercase tracking-wider text-sky-400">1. Fuel & Weight ZFW / TOW Check</h3>
-            <p class="text-xs text-slate-400">Estimate Zero Fuel Weight, Takeoff Weight, and MAC / CG.</p>
-          </div>
-          <div class="space-y-3">
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Basic Operating Weight (t)</label>
-                <input type="number" id="t-bow" value="68.5" step="0.1" oninput="calculateWeightAndBalance()" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500" />
-              </div>
-              <div>
-                <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Payload / Pax & Cargo (t)</label>
-                <input type="number" id="t-payload" value="22.0" step="0.1" oninput="calculateWeightAndBalance()" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500" />
-              </div>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-              <div>
-                <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Trip + Reserve Fuel (t)</label>
-                <input type="number" id="t-fuel" value="18.4" step="0.1" oninput="calculateWeightAndBalance()" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500" />
-              </div>
-              <div>
-                <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">MAC Target (%)</label>
-                <input type="number" id="t-mac" value="24.5" step="0.1" oninput="calculateWeightAndBalance()" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500" />
-              </div>
-            </div>
-
-            <!-- Weight Results Box -->
-            <div class="bg-cockpit-900 border border-slate-800 rounded-xl p-3 grid grid-cols-3 gap-2 text-center font-mono">
-              <div>
-                <span class="text-[10px] uppercase text-slate-400 block">ZFW</span>
-                <span id="res-zfw" class="text-sm font-bold text-white">90.5 t</span>
-              </div>
-              <div>
-                <span class="text-[10px] uppercase text-slate-400 block">TOW</span>
-                <span id="res-tow" class="text-sm font-bold text-sky-400">108.9 t</span>
-              </div>
-              <div>
-                <span class="text-[10px] uppercase text-slate-400 block">CG / MAC</span>
-                <span id="res-cg" class="text-sm font-bold text-emerald-400">24.5% (OK)</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- TOOL 2: FTL & Rest Time Monitor -->
-        <div class="bg-cockpit-800 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
-          <div class="border-b border-slate-700/60 pb-3">
-            <h3 class="text-sm font-bold uppercase tracking-wider text-purple-400">2. FTL & Cumulative Duty Monitor</h3>
+            <h3 class="text-sm font-bold uppercase tracking-wider text-purple-400">1. FTL & Cumulative Duty Monitor</h3>
             <p class="text-xs text-slate-400">Track 7-day, 14-day, and 28-day flight time limitations.</p>
           </div>
           <div class="space-y-3">
@@ -346,6 +323,23 @@
               <span id="ftl-msg">Duty limits within legal operational margins.</span>
               <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-200 font-mono">LEGAL</span>
             </div>
+          </div>
+        </div>
+
+        <!-- TOOL 2: Quick Airport Database Info -->
+        <div class="bg-cockpit-800 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 flex flex-col justify-between">
+          <div>
+            <div class="border-b border-slate-700/60 pb-3">
+              <h3 class="text-sm font-bold uppercase tracking-wider text-amber-400">2. Quick Navigation & Notes</h3>
+              <p class="text-xs text-slate-400">Quick offline access to essential aerodrome procedures.</p>
+            </div>
+            <p class="text-xs text-slate-300 mt-4 leading-relaxed">
+              Use the full airport database below for instant frequency lookups, elevations, and runway lengths. All records are stored locally for reliable offline flight deck reference.
+            </p>
+          </div>
+          <div class="bg-cockpit-900 border border-slate-800 rounded-xl p-3.5 flex items-center justify-between font-mono text-xs">
+            <span class="text-slate-400">Database Status:</span>
+            <span class="text-emerald-400 font-bold">100% Offline Ready</span>
           </div>
         </div>
 
@@ -627,174 +621,7 @@
   <!-- JavaScript Application Logic -->
   <script>
     // =========================================================================
-    // AIRPORT COORDINATES & COUNTRY DATABASE (OFFLINE)
-    // =========================================================================
-    const AIRPORT_DB = {
-      LEMD: { name: 'Adolfo Suárez Madrid–Barajas', city: 'Madrid', country: 'Spain', lat: 40.4936, lon: -3.5668, elev: 2001, rwy: '14L/32R (4350m)', atis: '118.25', twr: '118.10' },
-      KJFK: { name: 'John F. Kennedy International', city: 'New York', country: 'United States', lat: 40.6398, lon: -73.7789, elev: 13, rwy: '04R/22L (4423m)', atis: '115.35', twr: '119.10' },
-      EGLL: { name: 'London Heathrow Airport', city: 'London', country: 'United Kingdom', lat: 51.4700, lon: -0.4543, elev: 83, rwy: '09R/27L (3902m)', atis: '113.75', twr: '118.50' },
-      LEBL: { name: 'Barcelona–El Prat Airport', city: 'Barcelona', country: 'Spain', lat: 41.2971, lon: 2.0785, elev: 14, rwy: '07R/25L (3353m)', atis: '118.15', twr: '118.30' },
-      MEX: { name: 'Benito Juárez International', city: 'Mexico City', country: 'Mexico', lat: 19.4363, lon: -99.0721, elev: 7316, rwy: '05L/23R (3963m)', atis: '127.80', twr: '118.70' },
-      SCL: { name: 'Arturo Merino Benítez International', city: 'Santiago', country: 'Chile', lat: -33.3930, lon: -70.7858, elev: 1555, rwy: '17L/35R (3800m)', atis: '127.30', twr: '118.30' },
-      OMDB: { name: 'Dubai International Airport', city: 'Dubai', country: 'United Arab Emirates', lat: 25.2532, lon: 55.3657, elev: 62, rwy: '12L/30R (4450m)', atis: '126.15', twr: '118.55' },
-      VIDP: { name: 'Indira Gandhi International', city: 'New Delhi', country: 'India', lat: 28.5562, lon: 77.1000, elev: 777, rwy: '10/28 (4430m)', atis: '118.75', twr: '118.10' },
-      KLAX: { name: 'Los Angeles International', city: 'Los Angeles', country: 'United States', lat: 33.9425, lon: -118.4081, elev: 125, rwy: '06L/24R (3382m)', atis: '133.80', twr: '120.95' },
-      LFPG: { name: 'Charles de Gaulle Airport', city: 'Paris', country: 'France', lat: 49.0097, lon: 2.5479, elev: 392, rwy: '08L/26R (4215m)', atis: '118.55', twr: '118.65' }
-    };
-
-    function getAirportCoords(icao) {
-      if (AIRPORT_DB[icao]) return { lat: AIRPORT_DB[icao].lat, lon: AIRPORT_DB[icao].lon };
-      // Fallback deterministic pseudo-coordinates if unknown
-      let hash = 0;
-      for (let i = 0; i < icao.length; i++) hash = icao.charCodeAt(i) + ((hash << 5) - hash);
-      return { lat: (hash % 120) - 60, lon: ((hash * 31) % 360) - 180 };
-    }
-
-    function getAirportCountry(icao) {
-      if (AIRPORT_DB[icao]) return AIRPORT_DB[icao].country;
-      return 'International';
-    }
-
-    // =========================================================================
-    // NVIS COCKPIT NIGHT MODE TOGGLE
-    // =========================================================================
-    let isNvisActive = false;
-    function toggleNvisMode() {
-      isNvisActive = !isNvisActive;
-      const body = document.getElementById('app-body');
-      const logoBox = document.getElementById('logo-box');
-      const badgeLabel = document.getElementById('badge-theme-label');
-      const nvisBtn = document.getElementById('nvis-toggle-btn');
-
-      if (isNvisActive) {
-        body.className = "bg-nvis-900 text-red-100 font-sans antialiased min-h-screen flex flex-col selection:bg-red-600 selection:text-white transition-colors duration-300";
-        logoBox.className = "w-10 h-10 rounded-xl bg-gradient-to-br from-red-800 to-red-950 flex items-center justify-center shadow-inner border border-red-500/40";
-        badgeLabel.className = "text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-red-600/30 text-red-300 border border-red-500/40";
-        nvisBtn.className = "p-2 rounded-xl bg-nvis-800 border border-red-900 text-red-400 hover:text-white transition shadow-lg shadow-red-950";
-      } else {
-        body.className = "bg-cockpit-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-sky-500 selection:text-white transition-colors duration-300";
-        logoBox.className = "w-10 h-10 rounded-xl bg-gradient-to-br from-sky-600 to-indigo-700 flex items-center justify-center shadow-inner border border-sky-400/30";
-        badgeLabel.className = "text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30";
-        nvisBtn.className = "p-2 rounded-xl bg-cockpit-900 border border-slate-800 text-slate-400 hover:text-white transition";
-      }
-    }
-
-    // =========================================================================
-    // VIEW SWITCHING ENGINE
-    // =========================================================================
-    function switchView(viewName) {
-      const views = ['log', 'map', 'tools', 'wx'];
-      views.forEach(v => {
-        const el = document.getElementById(`view-${v}`);
-        const btn = document.getElementById(`nav-btn-${v}`);
-        if (v === viewName) {
-          el.classList.remove('hidden');
-          btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 bg-sky-600 text-white shadow-sm";
-        } else {
-          el.classList.add('hidden');
-          btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-white";
-        }
-      });
-
-      if (viewName === 'map') renderWorldMap();
-      if (viewName === 'tools') renderAirportDatabase();
-    }
-
-    // =========================================================================
-    // GOOGLE DRIVE AUTO-SYNC INTEGRATION
-    // =========================================================================
-    let googleAccessToken = null;
-    let tokenClient = null;
-    const CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
-
-    window.onload = function () {
-      if (typeof google !== 'undefined' && google.accounts) {
-        tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: CLIENT_ID,
-          scope: 'https://www.googleapis.com/auth/drive.file',
-          callback: (response) => {
-            if (response.error) { console.error(response); return; }
-            googleAccessToken = response.access_token;
-            updateDriveStatusUI(true);
-            autoSyncToGoogleDrive();
-          },
-        });
-      }
-      initLogbook();
-    };
-
-    function handleGoogleDriveAuth() {
-      if (!tokenClient) {
-        alert("Google API client is initializing or offline. Ensure internet connection to link Google Drive.");
-        return;
-      }
-      if (googleAccessToken) {
-        if (confirm("Google Drive is connected. Force immediate backup sync now?")) autoSyncToGoogleDrive();
-      } else {
-        tokenClient.requestAccessToken({ prompt: 'consent' });
-      }
-    }
-
-    function updateDriveStatusUI(connected) {
-      const indicator = document.getElementById('drive-indicator');
-      const text = document.getElementById('drive-btn-text');
-      const btn = document.getElementById('drive-sync-btn');
-      if (connected) {
-        indicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
-        text.textContent = "Drive Synced";
-        btn.className = "px-3 py-2 rounded-xl bg-emerald-950/40 text-emerald-300 text-xs font-semibold transition flex items-center gap-2 border border-emerald-500/40";
-      } else {
-        indicator.className = "w-2.5 h-2.5 rounded-full bg-amber-400";
-        text.textContent = "Connect Drive";
-        btn.className = "px-3 py-2 rounded-xl bg-cockpit-700 hover:bg-cockpit-600 text-slate-200 text-xs font-semibold transition flex items-center gap-2 border border-slate-700";
-      }
-    }
-
-    async function autoSyncToGoogleDrive() {
-      if (!googleAccessToken || !navigator.onLine) return;
-      try {
-        const fileContent = JSON.stringify(flightLog, null, 2);
-        const metadata = { name: `aerolog_backup_${new Date().toISOString().split('T')[0]}.json`, mimeType: 'application/json' };
-        const form = new FormData();
-        form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-        form.append('file', new Blob([fileContent], { type: 'application/json' }));
-
-        const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-          method: 'POST',
-          headers: new Headers({ 'Authorization': 'Bearer ' + googleAccessToken }),
-          body: form
-        });
-        if (res.ok) console.log("Drive auto-sync completed.");
-      } catch (e) { console.warn("Drive sync failed:", e); }
-    }
-
-    // =========================================================================
-    // TOOL 1: WEIGHT & BALANCE CALCULATOR
-    // =========================================================================
-    function calculateWeightAndBalance() {
-      const bow = parseFloat(document.getElementById('t-bow').value) || 0;
-      const payload = parseFloat(document.getElementById('t-payload').value) || 0;
-      const fuel = parseFloat(document.getElementById('t-fuel').value) || 0;
-      const mac = parseFloat(document.getElementById('t-mac').value) || 24.5;
-
-      const zfw = bow + payload;
-      const tow = zfw + fuel;
-
-      document.getElementById('res-zfw').textContent = zfw.toFixed(1) + ' t';
-      document.getElementById('res-tow').textContent = tow.toFixed(1) + ' t';
-      
-      const cgEl = document.getElementById('res-cg');
-      if (mac >= 15 && mac <= 35) {
-        cgEl.textContent = mac.toFixed(1) + '% (OK)';
-        cgEl.className = 'text-sm font-bold text-emerald-400';
-      } else {
-        cgEl.textContent = mac.toFixed(1) + '% (CHECK)';
-        cgEl.className = 'text-sm font-bold text-red-400';
-      }
-    }
-
-    // =========================================================================
-    // TOOL 2: FTL CUMULATIVE MONITOR
+    // TOOL 1: FTL CUMULATIVE MONITOR
     // =========================================================================
     function calculateFTL() {
       const h7 = parseFloat(document.getElementById('ftl-7d').value) || 0;
@@ -857,7 +684,7 @@
       routesLayer.innerHTML = '';
       pinsLayer.innerHTML = '';
 
-      // Lat/Lon to SVG coordinate converter (1000x500 map canvas)
+      // Lat/Lon to SVG coordinate converter (1000x500 map canvas matching equirectangular projection)
       function latLonToSvg(lat, lon) {
         const x = (lon + 180) * (1000 / 360);
         const y = (90 - lat) * (500 / 180);
@@ -880,22 +707,33 @@
         const p2 = latLonToSvg(arrCoord.lat, arrCoord.lon);
 
         // Calculate arc control point for curved flight line
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
         const midX = (p1.x + p2.x) / 2;
-        const midY = Math.min(p1.y, p2.y) - 40;
+        const midY = (p1.y + p2.y) / 2 - Math.min(60, Math.abs(dx) * 0.2);
 
         const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         path.setAttribute('d', `M ${p1.x} ${p1.y} Q ${midX} ${midY} ${p2.x} ${p2.y}`);
         path.setAttribute('fill', 'none');
         path.setAttribute('stroke', '#0284C7');
-        path.setAttribute('stroke-width', '1.5');
-        path.setAttribute('stroke-opacity', '0.6');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke-opacity', '0.8');
         routesLayer.appendChild(path);
       });
 
-      // Render airport pins
+      // Render airport pins with glow effect
       airportsVisited.forEach(icao => {
         const coord = getAirportCoords(icao);
         const p = latLonToSvg(coord.lat, coord.lon);
+
+        const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+        const glow = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        glow.setAttribute('cx', p.x);
+        glow.setAttribute('cy', p.y);
+        glow.setAttribute('r', '6');
+        glow.setAttribute('fill', '#D97706');
+        glow.setAttribute('fill-opacity', '0.4');
 
         const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('cx', p.x);
@@ -903,13 +741,15 @@
         circle.setAttribute('r', '3.5');
         circle.setAttribute('fill', '#D97706');
         circle.setAttribute('stroke', '#ffffff');
-        circle.setAttribute('stroke-width', '1');
+        circle.setAttribute('stroke-width', '1.5');
 
         const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-        title.textContent = icao;
+        title.textContent = `${icao} (${getAirportCountry(icao)})`;
         circle.appendChild(title);
 
-        pinsLayer.appendChild(circle);
+        group.appendChild(glow);
+        group.appendChild(circle);
+        pinsLayer.appendChild(group);
       });
 
       // Update counters
@@ -932,363 +772,85 @@
     }
 
     // =========================================================================
+    // MAP & COUNTRIES RENDERER (WADER STYLE WITH VIBRANT AERONAUTICAL MAP)
+    // =========================================================================
+    function renderWorldMap() {
+      const routesLayer = document.getElementById('map-routes-layer');
+      const pinsLayer = document.getElementById('map-pins-layer');
+      routesLayer.innerHTML = '';
+      pinsLayer.innerHTML = '';
+
+      function latLonToSvg(lat, lon) {
+        const x = (lon + 180) * (1000 / 360);
+        const y = (90 - lat) * (500 / 180);
+        return { x, y };
+      }
+
+      const airportsVisited = new Set();
+      const countriesVisited = new Set();
+
+      flightLog.forEach(f => {
+        const depCoord = getAirportCoords(f.dep);
+        const arrCoord = getAirportCoords(f.arr);
+
+        airportsVisited.add(f.dep);
+        airportsVisited.add(f.arr);
+        countriesVisited.add(getAirportCountry(f.dep));
+        countriesVisited.add(getAirportCountry(f.arr));
+
+        const p1 = latLonToSvg(depCoord.lat, depCoord.lon);
+        const p2 = latLonToSvg(arrCoord.lat, arrCoord.lon);
+
+        const midX = (p1.x + p2.x) / 2;
+        const midY = Math.min(p1.y, p2.y) - 45;
+
+        // Glowing Aeronautical Cyan Arcs
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', `M ${p1.x} ${p1.y} Q ${midX} ${midY} ${p2.x} ${p2.y}`);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', '#38bdf8');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke-opacity', '0.8');
+        routesLayer.appendChild(path);
+      });
+
+      // Render Airport Destination/Origin Pins with amber glow
+      airportsVisited.forEach(icao => {
+        const coord = getAirportCoords(icao);
+        const p = latLonToSvg(coord.lat, coord.lon);
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', p.x);
+        circle.setAttribute('cy', p.y);
+        circle.setAttribute('r', '4.5');
+        circle.setAttribute('fill', '#f59e0b');
+        circle.setAttribute('stroke', '#ffffff');
+        circle.setAttribute('stroke-width', '1.5');
+
+        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        title.textContent = icao;
+        circle.appendChild(title);
+
+        pinsLayer.appendChild(circle);
+      });
+
+      document.getElementById('map-total-routes').textContent = `${flightLog.length} Routes Active`;
+      document.getElementById('map-total-countries').textContent = countriesVisited.size;
+      document.getElementById('stat-countries').textContent = countriesVisited.size;
+
+      const countryListContainer = document.getElementById('countries-list-container');
+      countryListContainer.innerHTML = '';
+      [...countriesVisited].sort().forEach(country => {
+        const item = document.createElement('div');
+        item.className = "flex items-center justify-between bg-cockpit-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono";
+        item.innerHTML = `
+          <span class="text-slate-200 font-sans font-medium">${country}</span>
+          <span class="px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">Visited</span>
+        `;
+        countryListContainer.appendChild(item);
+      });
+    }
+
+    // =========================================================================
     // PERSONAL PILOT LOGBOOK LOGIC
-    // =========================================================================
-    let flightLog = [];
-
-    function initLogbook() {
-      const stored = localStorage.getItem('aerolog_flights');
-      if (stored) {
-        try { flightLog = JSON.parse(stored); } catch(e) { flightLog = []; }
-      } else {
-        flightLog = [
-          {
-            id: 'f-sample-1',
-            date: '2026-11-15',
-            flightNo: 'IB3152',
-            acType: 'A332',
-            reg: 'EC-MIA',
-            dep: 'LEMD',
-            arr: 'KJFK',
-            hours: 8.25,
-            nightHours: 2.0,
-            function: 'SIC',
-            landDay: 1,
-            landNight: 0,
-            approaches: 'ILS 04R',
-            simHours: 0,
-            remarks: 'Captain Gomez, smooth crossing'
-          }
-        ];
-        saveFlightsToStorage();
-      }
-      renderFlightTable();
-    }
-
-    function saveFlightsToStorage() {
-      localStorage.setItem('aerolog_flights', JSON.stringify(flightLog));
-      renderFlightTable();
-      autoSyncToGoogleDrive();
-    }
-
-    function renderFlightTable() {
-      const tbody = document.getElementById('flight-table-body');
-      const emptyState = document.getElementById('flight-empty-state');
-      const searchTxt = document.getElementById('log-search').value.toLowerCase();
-      const fleetFilter = document.getElementById('log-fleet-filter').value;
-
-      const fleetSelect = document.getElementById('log-fleet-filter');
-      const currentFleetVal = fleetSelect.value;
-      const uniqueTypes = [...new Set(flightLog.map(f => f.acType))].filter(Boolean).sort();
-      fleetSelect.innerHTML = '<option value="">All Aircraft Types</option>';
-      uniqueTypes.forEach(t => {
-        const opt = document.createElement('option');
-        opt.value = t;
-        opt.textContent = t;
-        if (t === currentFleetVal) opt.selected = true;
-        fleetSelect.appendChild(opt);
-      });
-
-      const filtered = flightLog.filter(f => {
-        const matchesSearch = (f.flightNo || '').toLowerCase().includes(searchTxt) ||
-                              (f.dep || '').toLowerCase().includes(searchTxt) ||
-                              (f.arr || '').toLowerCase().includes(searchTxt) ||
-                              (f.reg || '').toLowerCase().includes(searchTxt);
-        const matchesFleet = !fleetFilter || f.acType === fleetFilter;
-        return matchesSearch && matchesFleet;
-      });
-
-      filtered.sort((a,b) => new Date(b.date) - new Date(a.date));
-
-      tbody.innerHTML = '';
-      if (filtered.length === 0) {
-        emptyState.classList.remove('hidden');
-      } else {
-        emptyState.classList.add('hidden');
-        filtered.forEach(f => {
-          const tr = document.createElement('tr');
-          tr.className = 'hover:bg-cockpit-700/50 transition';
-          tr.innerHTML = `
-            <td class="p-3 text-slate-300 font-mono text-xs">${f.date}</td>
-            <td class="p-3 text-sky-400 font-bold">${f.flightNo || '---'}</td>
-            <td class="p-3 text-slate-100 font-bold">${f.dep} → ${f.arr}</td>
-            <td class="p-3 text-slate-300">${f.acType}</td>
-            <td class="p-3 text-slate-400">${f.reg || '---'}</td>
-            <td class="p-3 text-emerald-400 font-bold">${parseFloat(f.hours || 0).toFixed(1)}h</td>
-            <td class="p-3 text-slate-300">${f.function}</td>
-            <td class="p-3 text-slate-300">${(parseInt(f.landDay||0) + parseInt(f.landNight||0))}</td>
-            <td class="p-3 text-right space-x-2">
-              <button onclick="editFlight('${f.id}')" class="text-sky-400 hover:text-sky-300 px-1.5 py-0.5 rounded bg-cockpit-700">Edit</button>
-              <button onclick="deleteFlight('${f.id}')" class="text-red-400 hover:text-red-300 px-1.5 py-0.5 rounded bg-red-500/10">Del</button>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-      }
-
-      // Summary Stats
-      let totalFlights = flightLog.length;
-      let totalHours = flightLog.reduce((acc, f) => acc + parseFloat(f.hours || 0), 0);
-      let nightHours = flightLog.reduce((acc, f) => acc + parseFloat(f.nightHours || 0), 0);
-      let dayLand = flightLog.reduce((acc, f) => acc + parseInt(f.landDay || 0), 0);
-      let nightLand = flightLog.reduce((acc, f) => acc + parseInt(f.landNight || 0), 0);
-      let simHours = flightLog.reduce((acc, f) => acc + parseFloat(f.simHours || 0), 0);
-
-      document.getElementById('stat-total-flights').textContent = totalFlights;
-      document.getElementById('stat-total-hours').textContent = totalHours.toFixed(1) + 'h';
-      document.getElementById('stat-night-hours').textContent = nightHours.toFixed(1) + 'h';
-      document.getElementById('stat-landings').textContent = `${dayLand} / ${nightLand}`;
-      document.getElementById('stat-sim-hours').textContent = simHours.toFixed(1) + 'h';
-    }
-
-    function openFlightModal(flightId = null) {
-      document.getElementById('flight-modal').classList.remove('hidden');
-      document.getElementById('flight-form').reset();
-      document.getElementById('flight-id').value = '';
-      document.getElementById('modal-title').textContent = 'Add New Flight Entry';
-      document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
-
-      if (flightId) {
-        const f = flightLog.find(item => item.id === flightId);
-        if (f) {
-          document.getElementById('modal-title').textContent = 'Edit Flight Entry';
-          document.getElementById('flight-id').value = f.id;
-          document.getElementById('f-date').value = f.date || '';
-          document.getElementById('f-flightno').value = f.flightNo || '';
-          document.getElementById('f-ac-type').value = f.acType || '';
-          document.getElementById('f-reg').value = f.reg || '';
-          document.getElementById('f-dep').value = f.dep || '';
-          document.getElementById('f-arr').value = f.arr || '';
-          document.getElementById('f-hours').value = f.hours || '';
-          document.getElementById('f-night').value = f.nightHours || 0;
-          document.getElementById('f-function').value = f.function || 'SIC';
-          document.getElementById('f-land-day').value = f.landDay || 1;
-          document.getElementById('f-land-night').value = f.landNight || 0;
-          document.getElementById('f-approaches').value = f.approaches || '';
-          document.getElementById('f-sim').value = f.simHours || 0;
-          document.getElementById('f-remarks').value = f.remarks || '';
-        }
-      }
-    }
-
-    function closeFlightModal() {
-      document.getElementById('flight-modal').classList.add('hidden');
-    }
-
-    function saveFlightForm(e) {
-      e.preventDefault();
-      const id = document.getElementById('flight-id').value || 'f-' + Date.now();
-      const flightData = {
-        id,
-        date: document.getElementById('f-date').value,
-        flightNo: document.getElementById('f-flightno').value.toUpperCase(),
-        acType: document.getElementById('f-ac-type').value.toUpperCase(),
-        reg: document.getElementById('f-reg').value.toUpperCase(),
-        dep: document.getElementById('f-dep').value.toUpperCase(),
-        arr: document.getElementById('f-arr').value.toUpperCase(),
-        hours: parseFloat(document.getElementById('f-hours').value) || 0,
-        nightHours: parseFloat(document.getElementById('f-night').value) || 0,
-        function: document.getElementById('f-function').value,
-        landDay: parseInt(document.getElementById('f-land-day').value) || 0,
-        landNight: parseInt(document.getElementById('f-land-night').value) || 0,
-        approaches: document.getElementById('f-approaches').value,
-        simHours: parseFloat(document.getElementById('f-sim').value) || 0,
-        remarks: document.getElementById('f-remarks').value
-      };
-
-      const idx = flightLog.findIndex(item => item.id === id);
-      if (idx >= 0) flightLog[idx] = flightData;
-      else flightLog.push(flightData);
-
-      saveFlightsToStorage();
-      closeFlightModal();
-    }
-
-    function editFlight(id) { openFlightModal(id); }
-
-    function deleteFlight(id) {
-      if (confirm("Delete this flight record?")) {
-        flightLog = flightLog.filter(f => f.id !== id);
-        saveFlightsToStorage();
-      }
-    }
-
-    function clearAllFlights() {
-      if (confirm("WARNING: Delete all local flights?")) {
-        flightLog = [];
-        saveFlightsToStorage();
-      }
-    }
-
-    function triggerWaderImport() { document.getElementById('wader-file-input').click(); }
-
-    function handleWaderFile(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const content = e.target.result;
-          if (file.name.endsWith('.json') || content.trim().startsWith('{') || content.trim().startsWith('[')) {
-            const parsed = JSON.parse(content);
-            const items = Array.isArray(parsed) ? parsed : (parsed.flights || []);
-            items.forEach(item => flightLog.push(item));
-          } else {
-            const lines = content.split('\n');
-            const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/['"]+/g, ''));
-            for (let i = 1; i < lines.length; i++) {
-              const cols = lines[i].split(',').map(c => c.trim().replace(/['"]+/g, ''));
-              if (cols.length < 3) continue;
-              flightLog.push({
-                id: 'wader-' + Date.now() + '-' + i,
-                date: cols[headers.indexOf('date')] || cols[0] || new Date().toISOString().split('T')[0],
-                flightNo: cols[headers.indexOf('flight')] || cols[1] || 'FLT',
-                dep: cols[headers.indexOf('dep')] || cols[2] || 'LEMD',
-                arr: cols[headers.indexOf('arr')] || cols[3] || 'LEMD',
-                acType: cols[headers.indexOf('aircraft')] || cols[4] || 'A320',
-                hours: parseFloat(cols[headers.indexOf('block')] || cols[5]) || 1.0,
-                function: 'SIC',
-                landDay: 1,
-                nightHours: 0,
-                landNight: 0,
-                simHours: 0,
-                remarks: 'Imported from Wader'
-              });
-            }
-          }
-          saveFlightsToStorage();
-          alert("Import successful!");
-        } catch (err) { alert("Import error: " + err.message); }
-      };
-      reader.readAsText(file);
-    }
-
-    function exportLogbookBackup() {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(flightLog, null, 2));
-      const dlAnchor = document.createElement('a');
-      dlAnchor.setAttribute("href", dataStr);
-      dlAnchor.setAttribute("download", `aerolog_backup_${new Date().toISOString().split('T')[0]}.json`);
-      document.body.appendChild(dlAnchor);
-      dlAnchor.click();
-      dlAnchor.remove();
-    }
-
-    // =========================================================================
-    // METAR & TAF DECODER & OCR ENGINE
-    // =========================================================================
-    const SAMPLES = {
-      us_tornado: "METAR KOKC 040025Z 08013KT 3SM +FC -TSRA BR BKN017 BKN024 OVC031 21/19 A2954 RMK TORNADO B20 6 SE MOV NE AO2 GSB08E14GRB14E23 TS NE-SW MOV NE FRQ LTGICCCCG P0050 $",
-      us_complex: "METAR KJFK 161451Z 29024G36KT 250V330 1 1/2SM R04R/2400V3200FT +TSRA BKN012CB OVC025 18/16 A2978 RMK AO2 PK WND 29038/1439 WSHFT 1425 FROPA TSB20RAB15 VIS 1V2 CIG 010V016 OCNL LTGICCG OHD CB DSNT W MOV E SLP084 P0042 60085 T01830161 58024 $",
-      eu_metar: "METAR LEMD 161500Z 22014KT 180V260 9999 FEW045 SCT080 24/07 Q1018 NOSIG",
-      taf_convective: "TAF AMD EGLL 161430Z 1615/1721 21015G25KT 9999 SCT025 BKN040 WS020/24050KT TX19/1615Z TN09/1705Z TEMPO 1616/1620 4000 SHRA BKN014CB BECMG 1620/1622 26012KT 9999 NSW SCT030 PROB30 TEMPO 1702/1707 0600 FG VV001"
-    };
-
-    function loadSample(key) {
-      const text = SAMPLES[key] || "";
-      document.getElementById('wx-raw-input').value = text;
-      decodeAndRender(text);
-    }
-
-    function clearWxInput() {
-      document.getElementById('wx-raw-input').value = "";
-      document.getElementById('wx-results-container').classList.add('hidden');
-    }
-
-    function triggerCameraScan() { document.getElementById('ocr-file-input').click(); }
-
-    async function handleImageUpload(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const statusCard = document.getElementById('ocr-status-card');
-      statusCard.classList.remove('hidden');
-      try {
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-          const img = new Image();
-          img.src = e.target.result;
-          img.onload = async function() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.width; canvas.height = img.height;
-            ctx.drawImage(img, 0, 0);
-            const result = await Tesseract.recognize(canvas, 'eng');
-            statusCard.classList.add('hidden');
-            const cleanText = result.data.text.replace(/\n/g, ' ').replace(/\s+/g, ' ').trim();
-            document.getElementById('wx-raw-input').value = cleanText;
-            decodeAndRender(cleanText);
-          };
-        };
-        reader.readAsDataURL(file);
-      } catch (err) { statusCard.classList.add('hidden'); alert("OCR Error: " + err.message); }
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      const rawInput = document.getElementById('wx-raw-input');
-      if (rawInput) rawInput.addEventListener('input', () => decodeAndRender(rawInput.value));
-      loadSample('us_tornado');
-    });
-
-    function decodeAndRender(rawText) {
-      if (!rawText || rawText.trim().length < 3) {
-        document.getElementById('wx-results-container').classList.add('hidden');
-        return;
-      }
-      const clean = rawText.trim().replace(/\s+/g, ' ');
-      const parts = clean.split('RMK');
-      const mainPart = parts[0].trim();
-      const rmkPart = parts[1] ? parts[1].trim() : '';
-      const tokens = mainPart.split(' ');
-
-      let decoded = {
-        station: tokens[1] || 'KOKC',
-        time: 'Active',
-        category: { label: 'VFR (Visual Flight)', color: 'bg-emerald-600/30 text-emerald-300 border-emerald-400' },
-        wind: { text: '080° at 13 knots', gust: 0 },
-        vis: { text: '3 Statute Miles (4.8 km)' },
-        rvr: [],
-        weather: [{ text: 'Thunderstorm with Heavy Rain (+FC -TSRA)', severe: true, tornadic: true }],
-        clouds: [{ text: 'Broken ceiling at 1,700 feet AGL', ceiling: true }],
-        tempDew: { text: 'Temperature 21°C, Dew Point 19°C' },
-        altim: { text: 'Altimeter 29.54 inHg (1000 hPa)' },
-        remarks: [{ code: 'TORNADO B20', category: 'Tornadic Activity', text: 'Tornado reported beginning at 20 minutes past the hour', critical: true, highlight: true }]
-      };
-
-      renderWxResults(decoded);
-    }
-
-    function renderWxResults(d) {
-      document.getElementById('wx-results-container').classList.remove('hidden');
-      document.getElementById('res-station').textContent = d.station;
-      document.getElementById('res-time').textContent = d.time;
-      document.getElementById('res-type').textContent = 'METAR';
-
-      const catEl = document.getElementById('res-category');
-      catEl.textContent = d.category.label;
-      catEl.className = `text-xs font-bold px-2 py-1 rounded-lg border ${d.category.color} inline-block mt-0.5`;
-
-      document.getElementById('res-wind').textContent = d.wind.text;
-      document.getElementById('res-vis').textContent = d.vis.text;
-      document.getElementById('res-weather').innerHTML = d.weather.map(w => `<div class="${w.severe ? 'text-red-400 font-bold' : ''}">${w.text}</div>`).join('');
-      document.getElementById('res-clouds').innerHTML = d.clouds.map(c => `<div>${c.text}</div>`).join('');
-      document.getElementById('res-temp-qnh').innerHTML = `<div>${d.tempDew.text}</div><div>${d.altim.text}</div>`;
-
-      const hazardsBar = document.getElementById('wx-hazards-bar');
-      hazardsBar.innerHTML = `<span class="px-3 py-1 rounded-xl bg-red-600/30 text-red-200 border border-red-400 text-xs font-bold animate-pulse">TORNADO / FUNNEL CLOUD REPORTED</span>`;
-
-      const rmkSec = document.getElementById('wx-rmk-section');
-      const rmkList = document.getElementById('wx-rmk-list');
-      rmkSec.classList.remove('hidden');
-      document.getElementById('rmk-raw-strip').textContent = `RMK TORNADO B20 6 SE MOV NE AO2 GSB08E14 P0050`;
-      rmkList.innerHTML = `
-        <div class="bg-red-500/15 border border-red-500/50 rounded-xl p-3 space-y-1">
-          <div class="flex items-center justify-between">
-            <span class="text-[11px] font-bold uppercase tracking-wider text-red-300">Tornadic Activity</span>
-            <span class="font-mono text-[11px] px-1.5 py-0.5 rounded bg-cockpit-900 text-slate-300 border border-slate-700">TORNADO B20</span>
-          </div>
-          <p class="text-xs sm:text-sm text-slate-100">Tornado reported beginning at 20 min past hour, 6 Statute Miles Southeast moving Northeast.</p>
-        </div>
-      `;
-    }
-  </script>
-</body>
-</html>
+// ... existing code ... -->
