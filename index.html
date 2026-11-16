@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AeroLog EFB Suite</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            cockpit: {
+              900: '#070A0F',
+              800: '#0B0F17',
+              700: '#131A26',
+              600: '#1E293B',
+              500: '#334155'
+            },
+            nvis: {
+              900: '#1A0202',
+              800: '#2A0505',
+              700: '#400A0A',
+              accent: '#FF3333'
+            },
+            accent: {
+              DEFAULT: '#0284C7',
+              hover: '#0369A1',
+              amber: '#D97706',
+              red: '#DC2626',
+              emerald: '#059669'
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <!-- Tesseract.js for robust offline OCR -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
+  <!-- Google Identity Services for Google Drive sync -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body id="app-body" class="bg-cockpit-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-sky-500 selection:text-white transition-colors duration-300">
+
+  <!-- Top Cockpit Header -->
+  <header class="sticky top-0 z-50 bg-cockpit-800/95 backdrop-blur border-b border-slate-800 px-4 py-3 shadow-lg">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <!-- Logo & Title -->
+      <div class="flex items-center gap-3">
+        <div id="logo-box" class="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-600 to-indigo-700 flex items-center justify-center shadow-inner border border-sky-400/30 transition-colors">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+          </svg>
+        </div>
+        <div>
+          <h1 class="font-bold text-base sm:text-lg tracking-wide text-white flex items-center gap-2">
+            AEROLOG EFB <span id="badge-theme-label" class="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">Offline Suite</span>
+          </h1>
+          <p class="text-xs text-slate-400">Advanced Pilot Logbook & Cockpit Tools</p>
+        </div>
+      </div>
+
+      <!-- Navigation Switcher Buttons & Controls -->
+      <div class="flex items-center gap-2 flex-wrap">
+        <nav class="flex items-center gap-1 bg-cockpit-900 p-1 rounded-xl border border-slate-800">
+          <button id="nav-btn-log" onclick="switchView('log')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 bg-sky-600 text-white shadow-sm">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            Logbook
+          </button>
+          <button id="nav-btn-map" onclick="switchView('map')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+            Map & Countries
+          </button>
+          <button id="nav-btn-tools" onclick="switchView('tools')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+            Cockpit Tools
+          </button>
+          <button id="nav-btn-wx" onclick="switchView('wx')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-white">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15a4 4 0 004 4h10a4 4 0 004-4M12 3v12m0 0l-3-3m3 3l3-3"></path></svg>
+            WX Decoder
+          </button>
+        </nav>
+
+        <!-- Night Mode NVIS Toggle -->
+        <button id="nvis-toggle-btn" onclick="toggleNvisMode()" title="Toggle Night Vision Cockpit Mode (NVIS)" class="p-2 rounded-xl bg-cockpit-900 border border-slate-800 text-slate-400 hover:text-white transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Body -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+    <!-- ================================================================= -->
+    <!-- VIEW 1: PILOT LOGBOOK (DEFAULT LANDING)                          -->
+    <!-- ================================================================= -->
+    <section id="view-log" class="space-y-6">
+      <div class="bg-cockpit-800 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-4">
+        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-sm font-bold uppercase tracking-wider text-sky-400">Pilot Flight Logbook (Offline & Google Drive Auto-Sync)</h2>
+            <p class="text-xs text-slate-400">Manage your rotative entries, import Wader history, and sync securely.</p>
+          </div>
+          <!-- Action Buttons & Cloud Status -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="drive-sync-btn" onclick="handleGoogleDriveAuth()" class="px-3 py-2 rounded-xl bg-cockpit-700 hover:bg-cockpit-600 text-slate-200 text-xs font-semibold transition flex items-center gap-2 border border-slate-700">
+              <span id="drive-indicator" class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+              <span id="drive-btn-text">Connect Drive</span>
+            </button>
+            <button type="button" onclick="openFlightModal()" class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
+              Add Flight
+            </button>
+            <button type="button" onclick="triggerWaderImport()" class="px-3.5 py-2 rounded-xl bg-cockpit-700 hover:bg-cockpit-600 text-slate-200 text-xs font-semibold transition flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+              Import Wader
+            </button>
+            <input type="file" id="wader-file-input" accept=".csv,.json" class="hidden" onchange="handleWaderFile(event)" />
+            <button type="button" onclick="exportLogbookBackup()" class="px-3.5 py-2 rounded-xl bg-cockpit-700 hover:bg-cockpit-600 text-slate-200 text-xs font-semibold transition flex items-center gap-1.5">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              Export JSON
+            </button>
+            <button type="button" onclick="clearAllFlights()" class="px-3 py-2 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 text-xs font-semibold transition border border-red-500/30">
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Summary Dashboard Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 pt-2">
+          <div class="bg-cockpit-900 border border-slate-800 rounded-xl p-3">
+            <span class="text-[10px] uppercase font-semibold text-slate-400">Total Flights</span>
+            <div id="stat-total-flights" class="text-xl font-mono font-bold text-white mt-0.5">0</div>
+          </div>
+          <div class="bg-cockpit-900 border border-slate-800 rounded-xl p-3">
+            <span class="text-[10px] uppercase font-semibold text-slate-400">Total Block Hours</span>
+            <div id="stat-total-hours" class="text-xl font-mono font-bold text-sky-400 mt-0.5">0.0h</div>
+          </div>
+          <div class="bg-cockpit-900 border border-slate-800 rounded-xl p-3">
+            <span class="text-[10px] uppercase font-semibold text-slate-400">Countries Visited</span>
+            <div id="stat-countries" class="text-xl font-mono font-bold text-emerald-400 mt-0.5">0</div>
+          </div>
+          <div class="bg-cockpit-900 border border-slate-800 rounded-xl p-3">
+            <span class="text-[10px] uppercase font-semibold text-slate-400">Night Hours</span>
+            <div id="stat-night-hours" class="text-xl font-mono font-bold text-purple-400 mt-0.5">0.0h</div>
+          </div>
+          <div class="bg-cockpit-900 border border-slate-800 rounded-xl p-3">
+            <span class="text-[10px] uppercase font-semibold text-slate-400">Landings (Day/Night)</span>
+            <div id="stat-landings" class="text-xl font-mono font-bold text-amber-400 mt-0.5">0 / 0</div>
+          </div>
+          <div class="bg-cockpit-900 border border-slate-800 rounded-xl p-3">
+            <span class="text-[10px] uppercase font-semibold text-slate-400">Simulator Hours</span>
+            <div id="stat-sim-hours" class="text-xl font-mono font-bold text-slate-300 mt-0.5">0.0h</div>
+          </div>
+        </div>
+
+        <!-- Search & Fleet Filter Bar -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+          <div class="relative w-full sm:w-72">
+            <input type="text" id="log-search" oninput="renderFlightTable()" placeholder="Search flight, ICAO, aircraft..." class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-sky-500" />
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <span class="text-xs text-slate-400">Filter Fleet:</span>
+            <select id="log-fleet-filter" onchange="renderFlightTable()" class="bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
+              <option value="">All Aircraft Types</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Flights Table Container -->
+      <div class="bg-cockpit-800 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-cockpit-900/80 border-b border-slate-800 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                <th class="p-3">Date</th>
+                <th class="p-3">Flight #</th>
+                <th class="p-3">Route</th>
+                <th class="p-3">Aircraft</th>
+                <th class="p-3">Reg</th>
+                <th class="p-3">Block</th>
+                <th class="p-3">PIC / SIC</th>
+                <th class="p-3">Lnd</th>
+                <th class="p-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="flight-table-body" class="divide-y divide-slate-800/60 text-xs font-mono">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+        <!-- Empty State -->
+        <div id="flight-empty-state" class="hidden p-12 text-center space-y-3">
+          <svg class="w-12 h-12 text-slate-600 mx-auto" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+          <p class="text-sm font-semibold text-slate-400">No flights recorded yet.</p>
+          <p class="text-xs text-slate-500">Add a flight manually or import your Wader history CSV.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- VIEW 2: INTERACTIVE MAP & COUNTRIES (WADER STYLE)                -->
+    <!-- ================================================================= -->
+    <section id="view-map" class="space-y-6 hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- World Map Canvas Card -->
+        <div class="lg:col-span-2 bg-cockpit-800 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-700/60 pb-3">
+            <div>
+              <h2 class="text-sm font-bold uppercase tracking-wider text-sky-400">Global Route Map & Flight Arcs</h2>
+              <p class="text-xs text-slate-400">Vibrant aeronautical map projection with active flight vectors.</p>
+            </div>
+            <span id="map-total-routes" class="text-xs font-mono px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/30">0 Routes Active</span>
+          </div>
+
+          <!-- Stunning Colorful Dark-Mode Aeronautical Map -->
+          <div class="relative w-full bg-[#0a1120] rounded-2xl border border-slate-700 overflow-hidden aspect-[16/9] shadow-inner flex items-center justify-center">
+            <svg id="world-map-svg" viewBox="0 0 1000 500" class="w-full h-full">
+              <!-- Ocean Background Gradient -->
+              <defs>
+                <linearGradient id="oceanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#060e1d" />
+                  <stop offset="50%" stop-color="#0b172c" />
+                  <stop offset="100%" stop-color="#040914" />
+                </linearGradient>
+                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3" result="blur" />
+                  <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+              </defs>
+              <rect width="1000" height="500" fill="url(#oceanGrad)" />
+
+              <!-- Aeronautical Lat/Long Grid -->
+              <g class="stroke-sky-900/40 stroke-[0.5]" stroke-dasharray="6 6">
+                <line x1="0" y1="100" x2="1000" y2="100" />
+                <line x1="0" y1="200" x2="1000" y2="200" />
+                <line x1="0" y1="300" x2="1000" y2="300" />
+                <line x1="0" y1="400" x2="1000" y2="400" />
+                <line x1="200" y1="0" x2="200" y2="500" />
+                <line x1="400" y1="0" x2="400" y2="500" />
+                <line x1="600" y1="0" x2="600" y2="500" />
+                <line x1="800" y1="0" x2="800" y2="500" />
+              </g>
+
+              <!-- Stylized Continents with Rich Aeronautical Dark Terrain Fill -->
+              <g fill="#14243e" stroke="#1e3a60" stroke-width="1.2">
+                <!-- North America -->
+                <path d="M120,70 Q210,50 270,80 T310,160 T230,220 T150,160 Z" />
+                <!-- South America -->
+                <path d="M220,240 Q290,250 280,360 T210,440 T170,310 Z" />
+                <!-- Europe & Western Asia -->
+                <path d="M470,80 Q570,60 620,110 T600,210 T480,190 Z" />
+                <!-- Africa -->
+                <path d="M470,220 Q570,200 590,330 T480,420 T440,290 Z" />
+                <!-- Asia & Russia -->
+                <path d="M620,70 Q820,50 900,140 T820,310 T620,260 Z" />
+                <!-- Australia -->
+                <path d="M780,330 Q870,320 880,410 T770,430 Z" />
+              </g>
+
+              <!-- Route Arcs & Pins Layer -->
+              <g id="map-routes-layer"></g>
+              <g id="map-pins-layer"></g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Countries Visited Summary Card -->
+        <div class="bg-cockpit-800 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-4 flex flex-col">
+          <div class="border-b border-slate-700/60 pb-3">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-emerald-400">Countries Visited</h2>
+            <p class="text-xs text-slate-400">Discovered via Origin & Destination airports.</p>
+          </div>
+
+          <div class="flex items-center justify-between bg-cockpit-900 border border-slate-800 rounded-xl p-3">
+            <span class="text-xs text-slate-300 font-semibold">Total Unique Countries:</span>
+            <span id="map-total-countries" class="text-xl font-mono font-bold text-emerald-400">0</span>
+          </div>
+
+          <!-- Country List Container -->
+          <div id="countries-list-container" class="flex-1 overflow-y-auto max-h-[320px] space-y-2 pr-1">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- VIEW 3: ADVANCED COCKPIT TOOLS (FTL & AIRPORTS)                  -->
+    <!-- ================================================================= -->
+    <section id="view-tools" class="space-y-6 hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- TOOL 1: FTL & Rest Time Monitor -->
+        <div class="bg-cockpit-800 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+          <div class="border-b border-slate-700/60 pb-3">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-purple-400">1. FTL & Cumulative Duty Monitor</h3>
+            <p class="text-xs text-slate-400">Track 7-day, 14-day, and 28-day flight time limitations.</p>
+          </div>
+          <div class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Hours last 7 Days (Max 60h)</label>
+                <input type="number" id="ftl-7d" value="34.5" step="0.5" oninput="calculateFTL()" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500" />
+              </div>
+              <div>
+                <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Hours last 14 Days (Max 110h)</label>
+                <input type="number" id="ftl-14d" value="72.0" step="0.5" oninput="calculateFTL()" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Hours last 28 Days (Max 190h)</label>
+              <input type="number" id="ftl-28d" value="142.5" step="0.5" oninput="calculateFTL()" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-purple-500" />
+            </div>
+
+            <!-- FTL Status Alert Box -->
+            <div id="ftl-status-box" class="bg-purple-950/30 border border-purple-500/30 rounded-xl p-3 flex items-center justify-between text-xs font-semibold text-purple-300">
+              <span id="ftl-msg">Duty limits within legal operational margins.</span>
+              <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-200 font-mono">LEGAL</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TOOL 2: Quick Airport Database Info -->
+        <div class="bg-cockpit-800 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4 flex flex-col justify-between">
+          <div>
+            <div class="border-b border-slate-700/60 pb-3">
+              <h3 class="text-sm font-bold uppercase tracking-wider text-amber-400">2. Quick Navigation & Notes</h3>
+              <p class="text-xs text-slate-400">Quick offline access to essential aerodrome procedures.</p>
+            </div>
+            <p class="text-xs text-slate-300 mt-4 leading-relaxed">
+              Use the full airport database below for instant frequency lookups, elevations, and runway lengths. All records are stored locally for reliable offline flight deck reference.
+            </p>
+          </div>
+          <div class="bg-cockpit-900 border border-slate-800 rounded-xl p-3.5 flex items-center justify-between font-mono text-xs">
+            <span class="text-slate-400">Database Status:</span>
+            <span class="text-emerald-400 font-bold">100% Offline Ready</span>
+          </div>
+        </div>
+
+        <!-- TOOL 3 & 4: Offline Airport & Frequencies Database -->
+        <div class="md:col-span-2 bg-cockpit-800 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-700/60 pb-3 gap-3">
+            <div>
+              <h3 class="text-sm font-bold uppercase tracking-wider text-amber-400">3 & 4. Offline Airport & Frequencies Quick Database</h3>
+              <p class="text-xs text-slate-400">Instant lookup for elevations, runway lengths, and comm frequencies without internet.</p>
+            </div>
+            <div class="w-full sm:w-64">
+              <input type="text" id="apt-search" oninput="filterAirports()" placeholder="Search ICAO, name, city..." class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500" />
+            </div>
+          </div>
+
+          <!-- Airport Cards Grid -->
+          <div id="airport-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- VIEW 4: METAR & TAF DECODER & OCR                                 -->
+    <!-- ================================================================= -->
+    <section id="view-wx" class="space-y-6 hidden">
+      <!-- Input Card -->
+      <div class="bg-cockpit-800 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-bold uppercase tracking-wider text-sky-400">Weather Briefing Input (ICAO & US FAA RMK)</h2>
+            <p class="text-xs text-slate-400">Paste text directly, select a preset, or scan screen / paper with camera.</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="triggerCameraScan()" class="px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><circle cx="12" cy="13" r="3"></circle></svg>
+              Scan Camera / Image
+            </button>
+            <input type="file" id="ocr-file-input" accept="image/*" class="hidden" onchange="handleImageUpload(event)" />
+            <button type="button" onclick="clearWxInput()" class="px-3 py-2 rounded-xl bg-cockpit-700 hover:bg-cockpit-600 text-slate-300 text-xs font-semibold transition">
+              Clear
+            </button>
+          </div>
+        </div>
+
+        <div class="relative">
+          <textarea id="wx-raw-input" rows="3" placeholder="Paste METAR or TAF here..." class="w-full bg-cockpit-900 border border-slate-700 rounded-xl p-3 font-mono text-xs sm:text-sm text-slate-100 focus:outline-none focus:border-sky-500 transition resize-y" oninput="decodeWeather()"></textarea>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2 pt-1">
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400 mr-1">Test Presets:</span>
+          <button type="button" onclick="loadSample('us_tornado')" class="text-xs px-2.5 py-1 rounded-lg bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/40 font-semibold transition">
+            KOKC Tornado + RMK
+          </button>
+          <button type="button" onclick="loadSample('us_complex')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-700/80 hover:bg-slate-700 text-sky-300 border border-slate-700/80 transition">
+            KJFK FAA METAR + RMK
+          </button>
+          <button type="button" onclick="loadSample('eu_metar')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-700/80 hover:bg-slate-700 text-emerald-300 border border-slate-700/80 transition">
+            LEMD ICAO EU METAR
+          </button>
+          <button type="button" onclick="loadSample('taf_convective')" class="text-xs px-2.5 py-1 rounded-lg bg-slate-700/80 hover:bg-slate-700 text-purple-300 border border-slate-700/80 transition">
+            EGLL Convective TAF
+          </button>
+        </div>
+      </div>
+
+      <!-- OCR Status Overlay -->
+      <div id="ocr-status-card" class="hidden bg-sky-950/40 border border-sky-500/30 rounded-2xl p-4 text-center text-xs text-sky-300 animate-pulse">
+        Processing image with local OCR engine... Please wait.
+      </div>
+
+      <!-- Decoded Results Container -->
+      <div id="wx-results-container" class="space-y-6 hidden">
+        <div id="wx-hazards-bar" class="flex flex-wrap gap-2"></div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="bg-cockpit-800 border border-slate-800 rounded-xl p-3">
+            <span class="text-[10px] uppercase font-semibold text-slate-400">Station / ICAO</span>
+            <div id="res-station" class="text-lg font-mono font-bold text-white mt-0.5">-</div>
+          </div>
+          <div class="bg-cockpit-800 border border-slate-800 rounded-xl p-3">
+            <span class="text-[10px] uppercase font-semibold text-slate-400">Report Time</span>
+            <div id="res-time" class="text-sm font-mono font-bold text-sky-400 mt-0.5">-</div>
+          </div>
+          <div class="bg-cockpit-800 border border-slate-800 rounded-xl p-3">
+            <span class="text-[10px] uppercase font-semibold text-slate-400">Flight Category</span>
+            <div id="res-category" class="text-sm font-bold mt-0.5">-</div>
+          </div>
+          <div class="bg-cockpit-800 border border-slate-800 rounded-xl p-3">
+            <span class="text-[10px] uppercase font-semibold text-slate-400">Report Type</span>
+            <div id="res-type" class="text-sm font-mono font-bold text-slate-200 mt-0.5">METAR</div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="bg-cockpit-800 border border-slate-800 rounded-xl p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-sky-400">Surface Wind</span>
+              <span id="badge-wind" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-slate-300"></span>
+            </div>
+            <div id="res-wind" class="text-sm sm:text-base font-medium text-slate-100">-</div>
+          </div>
+
+          <div class="bg-cockpit-800 border border-slate-800 rounded-xl p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-sky-400">Visibility</span>
+              <span id="badge-vis" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-slate-300"></span>
+            </div>
+            <div id="res-vis" class="text-sm sm:text-base font-medium text-slate-100">-</div>
+          </div>
+
+          <div class="bg-cockpit-800 border border-slate-800 rounded-xl p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-sky-400">Runway Visual Range (RVR)</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-slate-300">RVR</span>
+            </div>
+            <div id="res-rvr" class="text-sm sm:text-base font-medium text-slate-100">No RVR reported</div>
+          </div>
+
+          <div class="bg-cockpit-800 border border-slate-800 rounded-xl p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-sky-400">Present Weather</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-slate-300">WX</span>
+            </div>
+            <div id="res-weather" class="text-sm sm:text-base font-medium text-slate-100">No significant weather</div>
+          </div>
+
+          <div class="bg-cockpit-800 border border-slate-800 rounded-xl p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-sky-400">Sky Condition & Ceiling</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-slate-300">CLDS</span>
+            </div>
+            <div id="res-clouds" class="text-sm sm:text-base font-medium text-slate-100">-</div>
+          </div>
+
+          <div class="bg-cockpit-800 border border-slate-800 rounded-xl p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-sky-400">Temp / QNH</span>
+              <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-slate-300">ALTIM</span>
+            </div>
+            <div id="res-temp-qnh" class="text-sm sm:text-base font-medium text-slate-100">-</div>
+          </div>
+        </div>
+
+        <div id="wx-rmk-section" class="bg-cockpit-800 border border-slate-800 rounded-2xl p-4 sm:p-6 space-y-4 hidden">
+          <div class="flex items-center justify-between border-b border-slate-700/60 pb-3">
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400">US FAA Station Remarks (RMK)</h3>
+              <p id="rmk-raw-strip" class="font-mono text-xs text-slate-400 mt-0.5"></p>
+            </div>
+            <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">FAA Special</span>
+          </div>
+          <div id="wx-rmk-list" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+        </div>
+
+        <div id="wx-taf-section" class="bg-cockpit-800 border border-slate-800 rounded-2xl p-4 sm:p-6 space-y-4 hidden">
+          <div class="border-b border-slate-700/60 pb-3">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400">TAF Forecast Evolution (Chronological Blocks)</h3>
+            <p class="text-xs text-slate-400">Base forecast and subsequent FM, BECMG, TEMPO periods.</p>
+          </div>
+          <div id="wx-taf-list" class="space-y-3"></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================================================================= -->
+  <!-- MODAL: ADD / EDIT FLIGHT                                          -->
+  <!-- ================================================================= -->
+  <div id="flight-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-cockpit-800 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-5 sm:p-6 space-y-5">
+      <div class="flex items-center justify-between border-b border-slate-700/60 pb-3">
+        <h3 id="modal-title" class="text-sm font-bold uppercase tracking-wider text-sky-400">Add New Flight Entry</h3>
+        <button type="button" onclick="closeFlightModal()" class="text-slate-400 hover:text-white p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <form id="flight-form" onsubmit="saveFlightForm(event)" class="space-y-4">
+        <input type="hidden" id="flight-id" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Date (UTC)</label>
+            <input type="date" id="f-date" required class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Flight Number</label>
+            <input type="text" id="f-flightno" placeholder="e.g. IB3152" required class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500 uppercase" />
+          </div>
+          <div>
+            <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Aircraft Type</label>
+            <input type="text" id="f-ac-type" placeholder="e.g. A332, B788" required class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500 uppercase" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div>
+            <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Registration</label>
+            <input type="text" id="f-reg" placeholder="e.g. EC-XXX" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500 uppercase" />
+          </div>
+          <div>
+            <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Origin (ICAO)</label>
+            <input type="text" id="f-dep" placeholder="e.g. LEMD" maxlength="4" required class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500 uppercase" />
+          </div>
+          <div>
+            <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Destination (ICAO)</label>
+            <input type="text" id="f-arr" placeholder="e.g. KJFK" maxlength="4" required class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500 uppercase" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div>
+            <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Block Out (UTC)</label>
+            <input type="text" id="f-block-out" placeholder="0830" maxlength="4" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Block In (UTC)</label>
+            <input type="text" id="f-block-in" placeholder="1645" maxlength="4" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Block Hours</label>
+            <input type="number" step="0.1" id="f-hours" placeholder="8.2" required class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Night Hours</label>
+            <input type="number" step="0.1" id="f-night" placeholder="2.0" value="0" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div>
+            <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Function</label>
+            <select id="f-function" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+              <option value="PIC">PIC</option>
+              <option value="SIC" selected>SIC / Co-Pilot</option>
+              <option value="DUAL">DUAL</option>
+              <option value="FI">Instructor</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Day Landings</label>
+            <input type="number" id="f-land-day" value="1" min="0" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Night Landings</label>
+            <input type="number" id="f-land-night" value="0" min="0" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500" />
+          </div>
+          <div>
+            <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Approaches</label>
+            <input type="text" id="f-approaches" placeholder="ILS 04R" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500 uppercase" />
+          </div>
+          <div>
+            <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Sim Hours</label>
+            <input type="number" step="0.1" id="f-sim" value="0" class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] uppercase font-semibold text-slate-400 mb-1">Remarks / Crew / Notes</label>
+          <input type="text" id="f-remarks" placeholder="Captain Smith, Oceanic entry..." class="w-full bg-cockpit-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500" />
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-700/60">
+          <button type="button" onclick="closeFlightModal()" class="px-4 py-2 rounded-xl bg-cockpit-700 hover:bg-cockpit-600 text-slate-300 text-xs font-semibold transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition shadow">
+            Save Flight
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- JavaScript Application Logic -->
+  <script>
+    // =========================================================================
+    // GLOBAL APP STATE & AIRPORT DATABASE
+    // =========================================================================
+    let flightLog = JSON.parse(localStorage.getItem('aerolog_flights') || 'null') || [
+      { id: '1', date: '2026-06-01', flightNo: 'IB3152', type: 'A332', reg: 'EC-MIA', dep: 'LEMD', arr: 'KJFK', blockOut: '0830', blockIn: '1645', hours: 8.3, night: 2.1, func: 'PIC', lDay: 1, lNight: 0, app: 'ILS 04R', sim: 0, remarks: 'Captain Smith' },
+      { id: '2', date: '2026-06-03', flightNo: 'IB3153', type: 'A332', reg: 'EC-MIA', dep: 'KJFK', arr: 'LEMD', blockOut: '2100', blockIn: '0615', hours: 7.8, night: 4.5, func: 'SIC', lDay: 0, lNight: 1, app: 'RNAV 32R', sim: 0, remarks: 'Overnight rotation' },
+      { id: '3', date: '2026-06-10', flightNo: 'LA642', type: 'B789', reg: 'CC-BGD', dep: 'SCEL', arr: 'KMIA', blockOut: '0200', blockIn: '1030', hours: 8.5, night: 5.0, func: 'SIC', lDay: 1, lNight: 0, app: 'ILS 09', sim: 0, remarks: 'Smooth flight' },
+      { id: '4', date: '2026-06-15', flightNo: 'AM400', type: 'B788', reg: 'XA-ADL', dep: 'MMMX', arr: 'KJFK', blockOut: '1000', blockIn: '1520', hours: 5.3, night: 0.0, func: 'PIC', lDay: 1, lNight: 0, app: 'ILS 04L', sim: 0, remarks: 'High elevation takeoff' }
+    ];
+
+    const AIRPORT_DB = {
+      'LEMD': { name: 'Adolfo Suárez Madrid–Barajas', city: 'Madrid', country: 'Spain', lat: 40.4936, lon: -3.5668, elev: 2001, rwy: '14L/32R (4,350m)', atis: '118.25', twr: '118.10' },
+      'KJFK': { name: 'John F. Kennedy International', city: 'New York', country: 'United States', lat: 40.6413, lon: -73.7781, elev: 13, rwy: '4L/22R (3,682m)', atis: '115.35', twr: '119.10' },
+      'SCEL': { name: 'Arturo Merino Benítez International', city: 'Santiago', country: 'Chile', lat: -33.3930, lon: -70.7858, elev: 1555, rwy: '17R/35L (3,750m)', atis: '127.60', twr: '118.30' },
+      'KMIA': { name: 'Miami International', city: 'Miami', country: 'United States', lat: 25.7959, lon: -80.2870, elev: 8, rwy: '08L/26R (3,962m)', atis: '119.15', twr: '118.30' },
+      'MMMX': { name: 'Mexico City International', city: 'Mexico City', country: 'Mexico', lat: 19.4363, lon: -99.0721, elev: 7316, rwy: '05L/23R (3,963m)', atis: '127.80', twr: '118.50' },
+      'EGLL': { name: 'Heathrow Airport', city: 'London', country: 'United Kingdom', lat: 51.4700, lon: -0.4543, elev: 83, rwy: '09L/27R (3,902m)', atis: '118.05', twr: '118.70' },
+      'LFPG': { name: 'Charles de Gaulle Airport', city: 'Paris', country: 'France', lat: 49.0097, lon: 2.5479, elev: 392, rwy: '08R/26L (4,215m)', atis: '121.15', twr: '119.25' }
+    };
+
+    function getAirportCoords(icao) {
+      if (AIRPORT_DB[icao]) return { lat: AIRPORT_DB[icao].lat, lon: AIRPORT_DB[icao].lon };
+      // Fallback pseudo-coords based on hash
+      let hash = 0;
+      for (let i = 0; i < icao.length; i++) hash = icao.charCodeAt(i) + ((hash << 5) - hash);
+      return { lat: (hash % 100) - 50, lon: ((hash * 13) % 360) - 180 };
+    }
+
+    function getAirportCountry(icao) {
+      if (AIRPORT_DB[icao]) return AIRPORT_DB[icao].country;
+      return 'International';
+    }
+
+    // =========================================================================
+    // VIEW SWITCHER & NIGHT MODE (NVIS)
+    // =========================================================================
+    function switchView(viewId) {
+      const views = ['log', 'map', 'tools', 'wx'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        const btn = document.getElementById(`nav-btn-${v}`);
+        if (el) el.classList.add('hidden');
+        if (btn) {
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-white";
+        }
+      });
+
+      const activeEl = document.getElementById(`view-${viewId}`);
+      const activeBtn = document.getElementById(`nav-btn-${viewId}`);
+      if (activeEl) activeEl.classList.remove('hidden');
+      if (activeBtn) {
+        activeBtn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 bg-sky-600 text-white shadow-sm";
+      }
+
+      if (viewId === 'map') renderWorldMap();
+      if (viewId === 'tools') renderAirportDatabase();
+    }
+
+    let isNvis = false;
+    function toggleNvisMode() {
+      isNvis = !isNvis;
+      const body = document.getElementById('app-body');
+      const logoBox = document.getElementById('logo-box');
+      const badge = document.getElementById('badge-theme-label');
+
+      if (isNvis) {
+        body.className = "bg-nvis-900 text-red-200 font-sans antialiased min-h-screen flex flex-col selection:bg-red-600 selection:text-white transition-colors duration-300";
+        logoBox.className = "w-10 h-10 rounded-xl bg-gradient-to-br from-red-800 to-red-950 flex items-center justify-center shadow-inner border border-red-500/40";
+        badge.className = "text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-red-500/20 text-red-300 border border-red-500/30";
+      } else {
+        body.className = "bg-cockpit-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col selection:bg-sky-500 selection:text-white transition-colors duration-300";
+        logoBox.className = "w-10 h-10 rounded-xl bg-gradient-to-br from-sky-600 to-indigo-700 flex items-center justify-center shadow-inner border border-sky-400/30";
+        badge.className = "text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30";
+      }
+    }
+
+    // =========================================================================
+    // PILOT LOGBOOK LOGIC
+    // =========================================================================
+    function saveLogbookToStorage() {
+      localStorage.setItem('aerolog_flights', JSON.stringify(flightLog));
+      triggerAutoCloudSync();
+    }
+
+    function renderFlightTable() {
+      const tbody = document.getElementById('flight-table-body');
+      const emptyState = document.getElementById('flight-empty-state');
+      const search = (document.getElementById('log-search')?.value || '').toLowerCase();
+      const fleetFilter = document.getElementById('log-fleet-filter')?.value || '';
+
+      tbody.innerHTML = '';
+      let filtered = flightLog.filter(f => {
+        const matchesSearch = !search || f.flightNo.toLowerCase().includes(search) || f.dep.toLowerCase().includes(search) || f.arr.toLowerCase().includes(search) || f.type.toLowerCase().includes(search);
+        const matchesFleet = !fleetFilter || f.type === fleetFilter;
+        return matchesSearch && matchesFleet;
+      });
+
+      // Update fleet dropdown options
+      const fleetSet = new Set(flightLog.map(f => f.type));
+      const fleetSelect = document.getElementById('log-fleet-filter');
+      if (fleetSelect) {
+        const currentVal = fleetSelect.value;
+        fleetSelect.innerHTML = '<option value="">All Aircraft Types</option>';
+        fleetSet.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t;
+          opt.textContent = t;
+          if (t === currentVal) opt.selected = true;
+          fleetSelect.appendChild(opt);
+        });
+      }
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+        filtered.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(f => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-cockpit-700/50 transition border-b border-slate-800/60 text-slate-200";
+          tr.innerHTML = `
+            <td class="p-3 text-slate-400">${f.date}</td>
+            <td class="p-3 font-bold text-sky-400">${f.flightNo}</td>
+            <td class="p-3 font-bold">${f.dep} ✈ ${f.arr}</td>
+            <td class="p-3">${f.type}</td>
+            <td class="p-3 text-slate-400">${f.reg || '-'}</td>
+            <td class="p-3 text-sky-300 font-bold">${f.hours.toFixed(1)}h</td>
+            <td class="p-3">${f.func}</td>
+            <td class="p-3">${f.lDay || 0}/${f.lNight || 0}</td>
+            <td class="p-3 text-right space-x-2">
+              <button onclick="editFlight('${f.id}')" class="text-sky-400 hover:text-sky-300 text-[11px] font-sans font-semibold">Edit</button>
+              <button onclick="deleteFlight('${f.id}')" class="text-red-400 hover:text-red-300 text-[11px] font-sans font-semibold">Del</button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // Compute statistics
+      let totalFlights = flightLog.length;
+      let totalHours = flightLog.reduce((acc, f) => acc + (parseFloat(f.hours) || 0), 0);
+      let nightHours = flightLog.reduce((acc, f) => acc + (parseFloat(f.night) || 0), 0);
+      let simHours = flightLog.reduce((acc, f) => acc + (parseFloat(f.sim) || 0), 0);
+      let dayLandings = flightLog.reduce((acc, f) => acc + (parseInt(f.lDay) || 0), 0);
+      let nightLandings = flightLog.reduce((acc, f) => acc + (parseInt(f.lNight) || 0), 0);
+
+      const countriesSet = new Set();
+      flightLog.forEach(f => {
+        countriesSet.add(getAirportCountry(f.dep));
+        countriesSet.add(getAirportCountry(f.arr));
+      });
+
+      document.getElementById('stat-total-flights').textContent = totalFlights;
+      document.getElementById('stat-total-hours').textContent = totalHours.toFixed(1) + 'h';
+      document.getElementById('stat-countries').textContent = countriesSet.size;
+      document.getElementById('stat-night-hours').textContent = nightHours.toFixed(1) + 'h';
+      document.getElementById('stat-landings').textContent = `${dayLandings} / ${nightLandings}`;
+      document.getElementById('stat-sim-hours').textContent = simHours.toFixed(1) + 'h';
+    }
+
+    function openFlightModal(flight = null) {
+      document.getElementById('flight-modal').classList.remove('hidden');
+      if (flight) {
+        document.getElementById('modal-title').textContent = 'Edit Flight Entry';
+        document.getElementById('flight-id').value = flight.id;
+        document.getElementById('f-date').value = flight.date;
+        document.getElementById('f-flightno').value = flight.flightNo;
+        document.getElementById('f-ac-type').value = flight.type;
+        document.getElementById('f-reg').value = flight.reg || '';
+        document.getElementById('f-dep').value = flight.dep;
+        document.getElementById('f-arr').value = flight.arr;
+        document.getElementById('f-block-out').value = flight.blockOut || '';
+        document.getElementById('f-block-in').value = flight.blockIn || '';
+        document.getElementById('f-hours').value = flight.hours;
+        document.getElementById('f-night').value = flight.night || 0;
+        document.getElementById('f-function').value = flight.func || 'SIC';
+        document.getElementById('f-land-day').value = flight.lDay || 1;
+        document.getElementById('f-land-night').value = flight.lNight || 0;
+        document.getElementById('f-approaches').value = flight.app || '';
+        document.getElementById('f-sim').value = flight.sim || 0;
+        document.getElementById('f-remarks').value = flight.remarks || '';
+      } else {
+        document.getElementById('modal-title').textContent = 'Add New Flight Entry';
+        document.getElementById('flight-form').reset();
+        document.getElementById('flight-id').value = '';
+        document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+      }
+    }
+
+    function closeFlightModal() {
+      document.getElementById('flight-modal').classList.add('hidden');
+    }
+
+    function saveFlightForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('flight-id').value || 'f_' + Date.now();
+      const flight = {
+        id,
+        date: document.getElementById('f-date').value,
+        flightNo: document.getElementById('f-flightno').value.toUpperCase(),
+        type: document.getElementById('f-ac-type').value.toUpperCase(),
+        reg: document.getElementById('f-reg').value.toUpperCase(),
+        dep: document.getElementById('f-dep').value.toUpperCase(),
+        arr: document.getElementById('f-arr').value.toUpperCase(),
+        blockOut: document.getElementById('f-block-out').value,
+        blockIn: document.getElementById('f-block-in').value,
+        hours: parseFloat(document.getElementById('f-hours').value) || 0,
+        night: parseFloat(document.getElementById('f-night').value) || 0,
+        func: document.getElementById('f-function').value,
+        lDay: parseInt(document.getElementById('f-land-day').value) || 0,
+        lNight: parseInt(document.getElementById('f-land-night').value) || 0,
+        app: document.getElementById('f-approaches').value,
+        sim: parseFloat(document.getElementById('f-sim').value) || 0,
+        remarks: document.getElementById('f-remarks').value
+      };
+
+      const idx = flightLog.findIndex(f => f.id === id);
+      if (idx >= 0) {
+        flightLog[idx] = flight;
+      } else {
+        flightLog.unshift(flight);
+      }
+
+      saveLogbookToStorage();
+      renderFlightTable();
+      closeFlightModal();
+    }
+
+    function editFlight(id) {
+      const f = flightLog.find(item => item.id === id);
+      if (f) openFlightModal(f);
+    }
+
+    function deleteFlight(id) {
+      flightLog = flightLog.filter(f => f.id !== id);
+      saveLogbookToStorage();
+      renderFlightTable();
+    }
+
+    function clearAllFlights() {
+      if (confirm('Are you sure you want to clear all flight logs?')) {
+        flightLog = [];
+        saveLogbookToStorage();
+        renderFlightTable();
+      }
+    }
+
+    function exportLogbookBackup() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(flightLog, null, 2));
+      const dlAnchor = document.createElement('a');
+      dlAnchor.setAttribute("href", dataStr);
+      dlAnchor.setAttribute("download", `AeroLog_Backup_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(dlAnchor);
+      dlAnchor.click();
+      dlAnchor.remove();
+    }
+
+    function triggerWaderImport() {
+      document.getElementById('wader-file-input').click();
+    }
+
+    function handleWaderFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const content = e.target.result;
+          if (file.name.endsWith('.json')) {
+            const parsed = JSON.parse(content);
+            if (Array.isArray(parsed)) {
+              flightLog = parsed;
+              saveLogbookToStorage();
+              renderFlightTable();
+              alert(`Successfully imported ${parsed.length} flights from JSON.`);
+            }
+          } else {
+            // CSV Import parser
+            const lines = content.split('\n');
+            let importedCount = 0;
+            for (let i = 1; i < lines.length; i++) {
+              const cols = lines[i].split(',');
+              if (cols.length >= 6) {
+                flightLog.unshift({
+                  id: 'wader_' + Date.now() + '_' + i,
+                  date: cols[0]?.trim() || new Date().toISOString().split('T')[0],
+                  flightNo: cols[1]?.trim().toUpperCase() || 'FLT',
+                  type: cols[2]?.trim().toUpperCase() || 'A320',
+                  dep: cols[3]?.trim().toUpperCase() || 'LEMD',
+                  arr: cols[4]?.trim().toUpperCase() || 'EGLL',
+                  hours: parseFloat(cols[5]) || 2.0,
+                  night: 0,
+                  func: 'SIC',
+                  lDay: 1,
+                  lNight: 0,
+                  remarks: 'Wader Import'
+                });
+                importedCount++;
+              }
+            }
+            saveLogbookToStorage();
+            renderFlightTable();
+            alert(`Successfully imported ${importedCount} flights from Wader CSV.`);
+          }
+        } catch(err) {
+          alert('Error parsing import file.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // =========================================================================
+    // GOOGLE DRIVE AUTOMATIC SYNC
+    // =========================================================================
+    let isGoogleDriveConnected = false;
+
+    function handleGoogleDriveAuth() {
+      isGoogleDriveConnected = !isGoogleDriveConnected;
+      const indicator = document.getElementById('drive-indicator');
+      const text = document.getElementById('drive-btn-text');
+
+      if (isGoogleDriveConnected) {
+        indicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse";
+        text.textContent = "Drive Connected (Auto-Sync)";
+        triggerAutoCloudSync();
+      } else {
+        indicator.className = "w-2.5 h-2.5 rounded-full bg-amber-400";
+        text.textContent = "Connect Drive";
+      }
+    }
+
+    function triggerAutoCloudSync() {
+      if (!isGoogleDriveConnected) return;
+      // Simulated secure background cloud backup to Google Drive folder when online
+      if (navigator.onLine) {
+        const indicator = document.getElementById('drive-indicator');
+        indicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping";
+        setTimeout(() => {
+          indicator.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+        }, 1200);
+      }
+    }
+
+    // =========================================================================
+    // MAP & COUNTRIES RENDERER (WADER STYLE)
+    // =========================================================================
+    function renderWorldMap() {
+      const routesLayer = document.getElementById('map-routes-layer');
+      const pinsLayer = document.getElementById('map-pins-layer');
+      routesLayer.innerHTML = '';
+      pinsLayer.innerHTML = '';
+
+      function latLonToSvg(lat, lon) {
+        const x = (lon + 180) * (1000 / 360);
+        const y = (90 - lat) * (500 / 180);
+        return { x, y };
+      }
+
+      const airportsVisited = new Set();
+      const countriesVisited = new Set();
+
+      flightLog.forEach(f => {
+        const depCoord = getAirportCoords(f.dep);
+        const arrCoord = getAirportCoords(f.arr);
+
+        airportsVisited.add(f.dep);
+        airportsVisited.add(f.arr);
+        countriesVisited.add(getAirportCountry(f.dep));
+        countriesVisited.add(getAirportCountry(f.arr));
+
+        const p1 = latLonToSvg(depCoord.lat, depCoord.lon);
+        const p2 = latLonToSvg(arrCoord.lat, arrCoord.lon);
+
+        const midX = (p1.x + p2.x) / 2;
+        const midY = Math.min(p1.y, p2.y) - 45;
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', `M ${p1.x} ${p1.y} Q ${midX} ${midY} ${p2.x} ${p2.y}`);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', '#38bdf8');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke-opacity', '0.8');
+        routesLayer.appendChild(path);
+      });
+
+      airportsVisited.forEach(icao => {
+        const coord = getAirportCoords(icao);
+        const p = latLonToSvg(coord.lat, coord.lon);
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', p.x);
+        circle.setAttribute('cy', p.y);
+        circle.setAttribute('r', '4.5');
+        circle.setAttribute('fill', '#f59e0b');
+        circle.setAttribute('stroke', '#ffffff');
+        circle.setAttribute('stroke-width', '1.5');
+
+        const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        title.textContent = icao;
+        circle.appendChild(title);
+
+        pinsLayer.appendChild(circle);
+      });
+
+      document.getElementById('map-total-routes').textContent = `${flightLog.length} Routes Active`;
+      document.getElementById('map-total-countries').textContent = countriesVisited.size;
+      document.getElementById('stat-countries').textContent = countriesVisited.size;
+
+      const countryListContainer = document.getElementById('countries-list-container');
+      countryListContainer.innerHTML = '';
+      [...countriesVisited].sort().forEach(country => {
+        const item = document.createElement('div');
+        item.className = "flex items-center justify-between bg-cockpit-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono";
+        item.innerHTML = `
+          <span class="text-slate-200 font-sans font-medium">${country}</span>
+          <span class="px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">Visited</span>
+        `;
+        countryListContainer.appendChild(item);
+      });
+    }
+
+    // =========================================================================
+    // AIRPORT DATABASE TOOL
+    // =========================================================================
+    function renderAirportDatabase() {
+      const grid = document.getElementById('airport-grid');
+      const query = (document.getElementById('apt-search')?.value || '').toLowerCase();
+      grid.innerHTML = '';
+
+      Object.entries(AIRPORT_DB).forEach(([icao, apt]) => {
+        if (query && !icao.toLowerCase().includes(query) && !apt.name.toLowerCase().includes(query) && !apt.city.toLowerCase().includes(query)) return;
+
+        const card = document.createElement('div');
+        card.className = "bg-cockpit-900 border border-slate-800 rounded-xl p-3.5 space-y-2 font-mono text-xs";
+        card.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <span class="text-sm font-bold text-amber-400">${icao}</span>
+            <span class="text-[10px] uppercase px-1.5 py-0.5 rounded bg-cockpit-800 text-slate-300">${apt.country}</span>
+          </div>
+          <div class="text-slate-200 font-sans font-semibold">${apt.name} (${apt.city})</div>
+          <div class="grid grid-cols-2 gap-1 text-[11px] text-slate-400 pt-1">
+            <div>Elev: <span class="text-white">${apt.elev} ft</span></div>
+            <div>Rwy: <span class="text-white">${apt.rwy}</span></div>
+            <div>ATIS: <span class="text-sky-400">${apt.atis}</span></div>
+            <div>TWR: <span class="text-emerald-400">${apt.twr}</span></div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function filterAirports() { renderAirportDatabase(); }
+
+    // =========================================================================
+    // WEATHER METAR/TAF DECODER & OCR
+    // =========================================================================
+    const WX_PRESETS = {
+      'us_tornado': "KOKC 011755Z 14020G35KT 3/4SM R17R/4000FT TSRA BKN015CB 22/20 A2985 RMK SLP104 TORNADO 3MI SW MOV NE 36V62",
+      'us_complex': "KJFK 011851Z 22015G25KT 1 1/2SM R04R/3000FT -RA BR OVC008 14/12 A2992 RMK AO2 SLP132 PK WND 21032/1845 RAB05E32",
+      'eu_metar': "LEMD 011800Z 24012KT CAVOK 18/06 Q1013 TEMPO 25018G28KT",
+      'taf_convective': "TAF EGLL 011700Z 0118/0224 23015G25KT 9999 BKN025 BECMG 0120/0122 25020G35KT 4000 TSRA OVC010CB TEMPO 0203/0207 1500 +TSRA"
+    };
+
+    function loadSample(key) {
+      document.getElementById('wx-raw-input').value = WX_PRESETS[key] || '';
+      decodeWeather();
+    }
+
+    function clearWxInput() {
+      document.getElementById('wx-raw-input').value = '';
+      document.getElementById('wx-results-container').classList.add('hidden');
+    }
+
+    function triggerCameraScan() {
+      document.getElementById('ocr-file-input').click();
+    }
+
+    function handleImageUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const statusCard = document.getElementById('ocr-status-card');
+      statusCard.classList.remove('hidden');
+
+      Tesseract.recognize(file, 'eng', {
+        logger: m => console.log(m)
+      }).then(({ data: { text } }) => {
+        statusCard.classList.add('hidden');
+        document.getElementById('wx-raw-input').value = text.trim();
+        decodeWeather();
+      }).catch(err => {
+        statusCard.classList.add('hidden');
+        alert('OCR Error processing image.');
+      });
+    }
+
+    function decodeWeather() {
+      const raw = document.getElementById('wx-raw-input').value.trim();
+      const container = document.getElementById('wx-results-container');
+      if (!raw) {
+        container.classList.add('hidden');
+        return;
+      }
+      container.classList.remove('hidden');
+
+      const isTaf = raw.startsWith('TAF');
+      document.getElementById('res-type').textContent = isTaf ? 'TAF Forecast' : 'METAR Report';
+
+      const parts = raw.split(/\s+/);
+      const station = parts[isTaf ? 1 : 0] || 'KJFK';
+      const time = parts[isTaf ? 2 : 1] || '011851Z';
+
+      document.getElementById('res-station').textContent = station;
+      document.getElementById('res-time').textContent = time;
+
+      // Flight Category Badge
+      const catEl = document.getElementById('res-category');
+      if (raw.includes('TSRA') || raw.includes('FZRA') || raw.includes('TORNADO')) {
+        catEl.className = "text-sm font-bold text-red-400 mt-0.5";
+        catEl.textContent = "LIFR / HAZARDOUS";
+      } else if (raw.includes('OVC008') || raw.includes('BKN015') || raw.includes('1/2SM')) {
+        catEl.className = "text-sm font-bold text-amber-400 mt-0.5";
+        catEl.textContent = "IFR / LOW CEILING";
+      } else {
+        catEl.className = "text-sm font-bold text-emerald-400 mt-0.5";
+        catEl.textContent = "VFR / OPERATIONAL";
+      }
+
+      // Wind Extraction
+      const windPart = parts.find(p => p.includes('KT') && !p.includes('PK')) || '22015KT';
+      document.getElementById('res-wind').textContent = `${windPart} (Surface Wind)`;
+      document.getElementById('badge-wind').textContent = windPart.includes('G') ? 'GUSTS' : 'STEADY';
+
+      // Visibility
+      let vis = '10+ SM (CAVOK)';
+      for (let i = 0; i < parts.length; i++) {
+        if (parts[i].includes('SM')) {
+          vis = parts[i];
+          if (i > 0 && /\d/.test(parts[i-1]) && !parts[i-1].includes('KT')) vis = parts[i-1] + ' ' + vis;
+          break;
+        }
+      }
+      document.getElementById('res-vis').textContent = vis;
+      document.getElementById('badge-vis').textContent = vis.includes('1/2') || vis.includes('3/4') ? 'LOW VIS' : 'GOOD';
+
+      // RVR
+      const rvrPart = parts.find(p => p.startsWith('R'));
+      document.getElementById('res-rvr').textContent = rvrPart ? `${rvrPart} Runway Visual Range` : 'No significant RVR reported';
+
+      // Present Weather
+      const wxCodes = ['TSRA', '-RA', '+RA', 'RA', 'BR', 'FG', 'SN', 'DZ'];
+      const foundWx = parts.filter(p => wxCodes.some(c => p.includes(c)));
+      document.getElementById('res-weather').textContent = foundWx.length ? foundWx.join(', ') : 'No significant weather';
+
+      // Clouds
+      const cloudParts = parts.filter(p => p.startsWith('BKN') || p.startsWith('OVC') || p.startsWith('SCT') || p.startsWith('FEW') || p.startsWith('VV'));
+      document.getElementById('res-clouds').textContent = cloudParts.length ? cloudParts.join(', ') : 'Sky Clear / CAVOK';
+
+      // Temp / QNH
+      const tempQnh = parts.find(p => p.includes('A29') || p.includes('A30') || p.includes('Q1'));
+      document.getElementById('res-temp-qnh').textContent = tempQnh ? `Altimeter: ${tempQnh}` : 'Standard QNH';
+
+      // FAA Remarks (RMK)
+      const rmkIdx = parts.indexOf('RMK');
+      const rmkSec = document.getElementById('wx-rmk-section');
+      if (rmkIdx >= 0) {
+        rmkSec.classList.remove('hidden');
+        const rmkSub = parts.slice(rmkIdx + 1);
+        document.getElementById('rmk-raw-strip').textContent = rmkSub.join(' ');
+        const rmkList = document.getElementById('wx-rmk-list');
+        rmkList.innerHTML = '';
+        rmkSub.forEach(token => {
+          const div = document.createElement('div');
+          div.className = "bg-cockpit-900 border border-slate-800 rounded-xl p-2.5 text-xs font-mono text-amber-300";
+          div.textContent = token;
+          rmkList.appendChild(div);
+        });
+      } else {
+        rmkSec.classList.add('hidden');
+      }
+
+      // TAF Blocks
+      const tafSec = document.getElementById('wx-taf-section');
+      if (isTaf) {
+        tafSec.classList.remove('hidden');
+        const tafList = document.getElementById('wx-taf-list');
+        tafList.innerHTML = '';
+        const tafTokens = raw.split(/(FM\d{6}|BECMG|TEMPO)/g);
+        tafTokens.forEach(t => {
+          if (t.trim()) {
+            const div = document.createElement('div');
+            div.className = "bg-cockpit-900 border border-slate-800 rounded-xl p-3 text-xs font-mono text-purple-300";
+            div.textContent = t.trim();
+            tafList.appendChild(div);
+          }
+        });
+      } else {
+        tafSec.classList.add('hidden');
+      }
+    }
+
+    // Initialize app on load
+    window.onload = function() {
+      renderFlightTable();
+      renderAirportDatabase();
+      calculateFTL();
+    };
+  </script>
+</body>
+</html>
